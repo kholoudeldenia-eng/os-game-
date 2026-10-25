@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لعبة نظام التشغيل</title>
+<style>
+:root{--bg:#000;--card:#161616;--tx:#fff;--mut:#aaa;--ac:#35c4ff;--ok:#2ecc71;--no:#ff5a5a;--bd:#333;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:Tahoma,Arial,sans-serif}
+.w{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;text-align:center;color:var(--ac);margin:8px 0}
+.bar{display:flex;justify-content:space-between;color:var(--mut);font-size:1rem;margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:12px}
+.q{font-size:1.3rem;line-height:1.7;margin-bottom:14px}
+button{font:inherit;font-size:1.15rem;color:var(--tx);background:#222;border:2px solid var(--bd);border-radius:12px;padding:12px;width:100%;margin-bottom:10px;cursor:pointer;text-align:right}
+button:hover{border-color:var(--ac)}
+button.ok{border-color:var(--ok);background:#0d2a17}
+button.no{border-color:var(--no);background:#2a0d0d}
+button.main{background:var(--ac);color:#000;text-align:center;font-weight:bold;border:0}
+.fb{min-height:28px;font-size:1.1rem;margin:6px 0}
+.tag{display:inline-block;background:#222;border-radius:8px;padding:2px 10px;color:var(--ac);font-size:.95rem;margin-bottom:8px}
+.pb{height:8px;background:#222;border-radius:4px;overflow:hidden;margin-bottom:12px}
+.pb i{display:block;height:100%;background:var(--ac);width:0;transition:width .3s}
+.big{font-size:3rem;text-align:center}
+.ord button{display:flex;justify-content:space-between}
+input{font:inherit;font-size:1.15rem;width:100%;padding:12px;margin-bottom:10px;border-radius:12px;border:2px solid var(--bd);background:#222;color:var(--tx)}
+table{width:100%;border-collapse:collapse;font-size:.95rem}td,th{border-bottom:1px solid var(--bd);padding:6px;text-align:center}
+.g{display:grid;direction:ltr;grid-template-columns:repeat(9,1fr);gap:3px;max-width:400px;margin:0 auto 12px}.c{aspect-ratio:1;position:relative}.c.x{visibility:hidden}
+.c input{width:100%;height:100%;padding:0;margin:0;text-align:center;font-size:1.2rem;border-radius:6px;text-transform:uppercase}.c small{position:absolute;top:1px;left:3px;font-size:.6rem;color:var(--ac);z-index:1}
+.sh{width:794px;background:#fff;color:#000;padding:30px;direction:rtl;font-family:Tahoma,Arial,sans-serif}.sh h2{text-align:center;margin:0 0 14px;color:#000}.sh p{font-size:16px;margin:6px 0;color:#000}.sh table{margin-top:10px}.sh td,.sh th{border:1px solid #888;padding:6px;text-align:right;font-size:14px;color:#000}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>💻 تحدّي نظام التشغيل</h1>
+<div id="app"></div><div id="hid" style="position:fixed;left:-9999px;top:0"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const Q=[
+{t:"التعريف",q:"ما هو نظام التشغيل؟",o:["برنامج وسيط بين المستخدم والعتاد يدير موارد الحاسوب","قطعة مادية داخل الحاسوب","برنامج لتحرير النصوص فقط"],a:0,e:"نظام التشغيل برمجية تدير العتاد والبرمجيات وتوفّر واجهة للمستخدم."},
+{t:"التعريف",q:"أيّ من التالي هو نظام تشغيل؟",o:["Microsoft Word","Windows","Google Chrome"],a:1,e:"Windows وLinux وAndroid وmacOS أنظمة تشغيل، أما الباقي فتطبيقات."},
+{t:"التعريف",q:"ماذا يحدث لو شُغّل الحاسوب بدون نظام تشغيل؟",o:["يعمل بشكل أسرع","لا يمكن للمستخدم استغلاله بسهولة","يتصل بالإنترنت تلقائيا"],a:1,e:"بدونه لا توجد واجهة ولا إدارة للموارد، فيصعب استعمال الحاسوب."},
+{t:"التجزئة",q:"ما معنى تجزئة القرص الصلب (Partitionnement)؟",o:["مسح كل ملفات الحاسوب","تقسيم القرص إلى أقسام منطقية مستقلة","تسريع المعالج"],a:1,e:"التجزئة تقسّم القرص إلى أقسام (C:, D:...) يمكن استعمال كل منها على حدة."},
+{t:"التجزئة",q:"فائدة من فوائد التجزئة:",o:["فصل ملفات النظام عن ملفات المستخدم","زيادة سعة القرص","زيادة سرعة الإنترنت"],a:0,e:"نخصّص قسما للنظام وقسما للبيانات، فتسهل الصيانة وإعادة التثبيت."},
+{t:"التهيئة",q:"ما هي التهيئة (Formatage)؟",o:["تحضير القسم لاستقبال الملفات بنظام ملفات معيّن","تثبيت لعبة","طباعة وثيقة"],a:0,e:"التهيئة تُنشئ نظام الملفات (NTFS, FAT32...) وغالبا تمحو البيانات."},
+{t:"التهيئة",q:"التهيئة المنطقية تتم على مستوى:",o:["مصنع القرص فقط","الأقسام بواسطة نظام التشغيل","الشاشة"],a:1,e:"التهيئة الفيزيائية تتم في المصنع، والمنطقية بنظام التشغيل على الأقسام."},
+{t:"التثبيت",q:"أيّ نظام ملفات يُستعمل غالبا مع Windows الحديث؟",o:["NTFS","HTML","MP3"],a:0,e:"NTFS هو الأكثر استعمالا في Windows، وFAT32 للأقراص الصغيرة والمفاتيح."},
+{t:"التثبيت",q:"من أين نُقلع الحاسوب لتثبيت نظام جديد؟",o:["من قرص أو مفتاح USB قابل للإقلاع","من الطابعة","من لوحة المفاتيح"],a:0,e:"نضبط ترتيب الإقلاع (Boot) في BIOS/UEFI على USB أو DVD."}
+];
+const STEPS=["الإقلاع من وسيط التثبيت (USB/DVD)","اختيار اللغة والتوقيت ونسخة النظام","تجزئة القرص واختيار القسم","تهيئة القسم ونسخ ملفات النظام","إعادة التشغيل وإعداد حساب المستخدم"];
+const TF=[
+{s:"التهيئة قد تمحو البيانات الموجودة في القسم.",a:true},
+{s:"التجزئة تزيد سعة القرص الصلب.",a:false},
+{s:"يمكن تثبيت نظامين على قسمين مختلفين.",a:true},
+{s:"التهيئة الفيزيائية يقوم بها المستخدم عادة.",a:false}
+];
+
+const CW=[{n:1,d:'a',r:0,c:1,a:'DISQUE',k:'القرص الصلب (وحدة تخزين الحاسوب)'},{n:2,d:'d',r:0,c:3,a:'SYSTEME',k:'النظام (الكلمة التي تسبق «التشغيل»)'},{n:3,d:'a',r:3,c:0,a:'PARTITION',k:'تقسيم القرص إلى أقسام منطقية (التجزئة)'},{n:4,d:'a',r:5,c:0,a:'FORMATAGE',k:'تحضير القسم لاستقبال الملفات (التهيئة)'}];
+const app=document.getElementById('app');
+const MAX=Q.length*10+STEPS.length*5+TF.length*10+CW.length*5;
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const H=s=>{let h=5381;for(const c of s)h=(h*33^c.codePointAt(0))>>>0;return 's'+h.toString(36)};
+const nz=s=>(s||'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').trim();
+const nf=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+let me={},st={i:0},db=null,isT=false,sent=false,scr='login';
+const add=(k,n)=>{me[k]=Math.max(0,(me[k]||0)+n)};
+const tot=()=>(me.quiz||0)+(me.order||0)+(me.tf||0)+(me.cross||0);
+async function save(){me.max=MAX;me.total=tot();me.t=new Date().toISOString().slice(0,16).replace('T',' ');
+try{localStorage.setItem('osg_'+me.key,JSON.stringify(me))}catch(e){}
+sent=false;try{if(db){await db.collection('results').doc(me.key).set(me);sent=true}}catch(e){}return sent}
+(async()=>{try{db=await claude.use('db');const u=await claude.use('user');isT=!!(u&&await u.isOwner())}catch(e){}if(scr==='login'&&!me.key)login()})();
+const bar=p=>`<div class="bar"><span>👤 ${esc(me.last)} ${esc(me.first)} · ⭐ ${tot()}</span><span>${p}</span></div>`;
+function login(){scr='login';
+app.innerHTML=`<div class="card"><div class="big">🎮</div><p class="q" style="text-align:center">أدخل لقبك واسمك لبدء اللعبة</p><input id="ln" placeholder="اللقب" autocomplete="off"><input id="fn" placeholder="الاسم" autocomplete="off"><select id="cl" style="font:inherit;font-size:1.15rem;width:100%;padding:12px;margin-bottom:10px;border-radius:12px;border:2px solid var(--bd);background:#222;color:var(--tx)"><option value="">اختر القسم</option><option>1 اداب 3</option><option>1 اداب 4</option><option>1 علوم 3</option><option>1 علوم 4</option><option>1 علوم 5</option></select><div class="fb" id="fb"></div><button class="main" id="go">دخول ◀</button>${isT?'<button id="tp">📋 فضاء الأستاذة: النتائج</button>':''}</div>`;
+document.getElementById('go').onclick=()=>{const l=document.getElementById('ln').value.trim(),f=document.getElementById('fn').value.trim();
+const c=document.getElementById('cl').value.trim();if(!l||!f||!c){document.getElementById('fb').textContent='⚠ أدخل اللقب والاسم والقسم.';return}
+me={first:f,last:l,cls:c,ans:[],key:H(nz(l+' '+f+' '+c).toLowerCase()),quiz:0,order:0,tf:0,cross:0};st.i=0;save();quiz()};
+const tp=document.getElementById('tp');if(tp)tp.onclick=teach}
+function quiz(){scr='q';
+if(st.i>=Q.length){save();return order()}
+const x=Q[st.i];const idx=shuffle(x.o.map((_,k)=>k));
+app.innerHTML=bar(`المرحلة 1 · ${st.i+1}/${Q.length}`)+`<div class="pb"><i style="width:${st.i/Q.length*100}%"></i></div><div class="card"><span class="tag">${x.t}</span><div class="q">${x.q}</div><div id="o"></div><div class="fb" id="fb"></div></div>`;
+const o=document.getElementById('o');let done=false;
+idx.forEach(k=>{const b=document.createElement('button');b.textContent=x.o[k];b.onclick=()=>{if(done)return;done=true;
+const r=k===x.a;if(r)add('quiz',10);me.ans.push({s:'q',q:x.q,a:x.o[k],c:x.o[x.a],ok:r});b.className=r?'ok':'no';
+if(!r)[...o.children][idx.indexOf(x.a)].className='ok';
+document.getElementById('fb').innerHTML=(r?'✅ أحسنت! ':'❌ ليس تماما. ')+x.e;
+const n=document.createElement('button');n.className='main';n.textContent='التالي ◀';n.onclick=()=>{st.i++;quiz()};o.appendChild(n)};o.appendChild(b)})}
+function order(){
+const seq=[];const pool=shuffle(STEPS.map((_,k)=>k));
+app.innerHTML=bar('المرحلة 2 · رتّب خطوات التثبيت')+`<div class="card"><div class="q">اضغط على الخطوات بالترتيب الصحيح:</div><div id="ch"></div><div class="fb" id="fb"></div></div>`;
+const ch=document.getElementById('ch');
+function draw(){ch.innerHTML='';pool.forEach(k=>{const b=document.createElement('button');const p=seq.indexOf(k);
+b.textContent=(p>=0?(p+1)+'. ':'')+STEPS[k];if(p>=0)b.className='ok';
+b.onclick=()=>{if(p>=0)return;if(k===seq.length){seq.push(k);add('order',5);
+if(seq.length===STEPS.length){me.ans.push({s:'o',q:'ترتيب خطوات التثبيت',a:'عدد الأخطاء: '+(me.oerr||0),ok:!me.oerr});save();draw();document.getElementById('fb').textContent='🎉 ممتاز! الترتيب صحيح.';const n=document.createElement('button');n.className='main';n.textContent='المرحلة التالية ◀';n.onclick=()=>{st.i=0;tf()};ch.appendChild(n);return}draw()}
+else{b.className='no';document.getElementById('fb').textContent='❌ ليست هذه الخطوة التالية، حاول مجددا.';add('order',-1);me.oerr=(me.oerr||0)+1}};ch.appendChild(b)})}
+draw()}
+function tf(){
+if(st.i>=TF.length){save();return cross()}
+const x=TF[st.i];
+app.innerHTML=bar(`المرحلة 3 · ${st.i+1}/${TF.length}`)+`<div class="card"><div class="q">${x.s}</div><div id="o"></div><div class="fb" id="fb"></div></div>`;
+const o=document.getElementById('o');let done=false;
+[[true,'✔ صح'],[false,'✘ خطأ']].forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.onclick=()=>{if(done)return;done=true;
+const r=v===x.a;if(r)add('tf',10);me.ans.push({s:'t',q:x.s,a:v?'صح':'خطأ',c:x.a?'صح':'خطأ',ok:r});b.className=r?'ok':'no';
+document.getElementById('fb').textContent=r?'✅ إجابة صحيحة':'❌ الإجابة الصحيحة: '+(x.a?'صح':'خطأ');
+const n=document.createElement('button');n.className='main';n.textContent='التالي ◀';n.onclick=()=>{st.i++;tf()};o.appendChild(n)};o.appendChild(b)})}
+function cross(){
+const g=[...Array(7)].map(()=>Array(9).fill(null));
+const pos=(w,i)=>[w.r+(w.d=='d'?i:0),w.c+(w.d=='a'?i:0)];
+CW.forEach(w=>Array.from(w.a).forEach((ch,i)=>{const[r,c]=pos(w,i);g[r][c]=ch}));
+let h='';for(let r=0;r<7;r++)for(let c=0;c<9;c++){const n=CW.find(w=>w.r==r&&w.c==c);
+h+=g[r][c]?`<div class="c">${n?`<small>${n.n}</small>`:''}<input maxlength="1" data-r="${r}" data-c="${c}"></div>`:'<div class="c x"></div>'}
+const cl=(d)=>CW.filter(w=>w.d==d).map(w=>`<div>${w.n}) ${w.k}</div>`).join('');
+app.innerHTML=bar('المرحلة 4 · الكلمات المتقاطعة')+`<div class="card"><div class="g">${h}</div><div class="q" style="font-size:1.05rem"><p style="margin:0 0 6px;color:var(--ac)">الإجابات مصطلحات فرنسية (بدون تشكيل)</p><b>↔ أفقي</b>${cl('a')}<b>↕ عمودي</b>${cl('d')}</div><div class="fb" id="fb"></div><button id="ck">تحقّق ✔</button><button class="main" id="fin">إنهاء ◀</button></div>`;
+document.getElementById('ck').onclick=()=>{let ok=0;const wr=[];
+CW.forEach(w=>{const cells=Array.from(w.a).map((ch,i)=>{const[r,c]=pos(w,i);return[ch,document.querySelector(`input[data-r="${r}"][data-c="${c}"]`)]});
+const good=cells.every(([ch,i])=>nf(i.value)==nf(ch));if(good)ok++;wr.push({s:'c',q:w.k,a:cells.map(([ch,i])=>i.value||'_').join('').toUpperCase(),c:w.a,ok:good});
+cells.forEach(([ch,i])=>{if(good)i.style.borderColor='var(--ok)';else if(i.style.borderColor!='var(--ok)')i.style.borderColor='var(--no)'})});
+me.cross=ok*5;me.ans=me.ans.filter(x=>x.s!='c').concat(wr);document.getElementById('fb').textContent=`${ok}/${CW.length} كلمات صحيحة`;document.querySelector('.bar span').textContent='👤 '+me.last+' '+me.first+' · ⭐ '+tot()};
+document.getElementById('fin').onclick=()=>{document.getElementById('ck').click();end()}}
+const FORM={url:'https://docs.google.com/forms/d/e/1FAIpQLScPsV9IHicGFvkEcA3wf9rEKI-zOlfHowSfz65l7e-wdJM85w/formResponse',ids:{score:'404113016',first:'603479971',last:'1794276554',cls:'1635518853',ans:'637935945'}};
+async function sendForm(){const I=FORM.ids;if(!I.last)return false;const b=new URLSearchParams();
+b.append('entry.'+I.score,(Math.round(tot()/MAX*200)/10)+'/20');b.append('entry.'+I.first,me.first);b.append('entry.'+I.last,me.last);b.append('entry.'+I.cls,me.cls);
+b.append('entry.'+I.ans,(me.ans||[]).map((a,i)=>(i+1)+') '+a.q+' | '+a.a+' | '+(a.ok?'صح':'خطأ، الصحيح: '+(a.c||''))).join('\n'));
+try{await fetch(FORM.url,{method:'POST',mode:'no-cors',body:b});return true}catch(e){return false}}
+async function end(){
+app.innerHTML='<div class="card"><div class="q">جارٍ الحفظ…</div></div>';await save();if(await sendForm())sent=true;
+const p=Math.round(tot()/MAX*100);
+const m=p>=80?'🏆 خبير في أنظمة التشغيل!':p>=50?'👍 جيد، راجع التجزئة والتهيئة.':'📚 أعد المحاولة بعد مراجعة الدرس.';
+app.innerHTML=`<div class="card"><div class="big">${m.split(' ')[0]}</div><p class="q" style="text-align:center">${m.slice(2)}<br><b>${esc(me.last)} ${esc(me.first)}</b><br>نتيجتك: ${Math.round(tot()/MAX*200)/10} / 20<br><small>${me.t}</small></p><div class="fb">${sent?'✅ تم إرسال نتيجتك إلى الأستاذة.':'📄 حمّل ورقة الإجابات (PDF) أو أرسلها للأستاذة.'}</div><button id="pd">⬇ تحميل ورقة الإجابات (PDF)</button><button class="main" id="again">لعبة جديدة</button></div>`;
+document.getElementById('pd').onclick=async function(){const t=this.textContent;this.textContent='…';try{await pdf([me],'reponses.pdf')}catch(e){alert('تعذّر إنشاء الملف')}this.textContent=t};
+document.getElementById('again').onclick=()=>{me={};login()}}
+const n20=r=>Math.round((+r.total||0)/(+r.max||MAX)*200)/10;
+function sheet(r){const rows=(r.ans||[]).map(a=>`<tr><td>${esc(a.q)}</td><td>${esc(a.a)}</td><td>${a.ok?'✔':'✘ '+esc(a.c||'')}</td></tr>`).join('');
+return `<div class="sh"><h2>ورقة إجابات · نظام التشغيل</h2><p>اللقب: <b>${esc(r.last)}</b> &nbsp; الاسم: <b>${esc(r.first)}</b> &nbsp; القسم: <b>${esc(r.cls)}</b></p><p>التاريخ: ${esc(r.t)} &nbsp; النقطة: <b>${n20(r)} / 20</b></p><table><tr><th>السؤال</th><th>إجابة التلميذ</th><th>التصحيح</th></tr>${rows}</table></div>`}
+async function pdf(list,name,share){const doc=new window.jspdf.jsPDF('p','mm','a4');const hid=document.getElementById('hid');let first=true;
+for(const r of list){hid.innerHTML=sheet(r);const cv=await html2canvas(hid.firstChild,{backgroundColor:'#fff',scale:2});
+const h=cv.height*210/cv.width,img=cv.toDataURL('image/jpeg',.92);let y=0;
+do{if(!first)doc.addPage();first=false;doc.addImage(img,'JPEG',0,-y,210,h);y+=297}while(y<h)}
+hid.innerHTML='';
+if(share){const f=new File([doc.output('blob')],name,{type:'application/pdf'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}
+doc.save(name)}
+async function teach(){
+app.innerHTML='<div class="card"><div class="q">جارٍ التحميل…</div></div>';let all=[],cur='';
+try{const s=await db.collection('results').get();all=s.docs.map(d=>d.data())}catch(e){app.innerHTML='<div class="card"><div class="q">تعذّر تحميل النتائج.</div><button id="b">رجوع</button></div>';document.getElementById('b').onclick=login;return}
+all.sort((a,b)=>String(a.cls||'').localeCompare(String(b.cls||''),'ar')||String(a.last).localeCompare(String(b.last),'ar'));
+const cls=[...new Set(all.map(r=>r.cls||'').filter(Boolean))];
+const sc=r=>Math.round((+r.total||0)/(+r.max||MAX)*200)/10;
+function view(){const rows=cur?all.filter(r=>r.cls===cur):all;
+const tr=rows.map((r,i)=>`<tr><td>${esc(r.last)} ${esc(r.first)}<br><small>${esc(r.cls)}</small></td><td>${+r.quiz||0}</td><td>${+r.order||0}</td><td>${+r.tf||0}</td><td>${+r.cross||0}</td><td><b>${sc(r)}</b>/20</td><td><button data-i="${i}" style="width:auto;padding:4px 10px;margin:0;font-size:.9rem">PDF</button></td></tr>`).join('');
+const op='<option value="">كل الأقسام</option>'+cls.map(c=>`<option value="${esc(c)}"${c===cur?' selected':''}>${esc(c)}</option>`).join('');
+app.innerHTML=`<div class="card"><div class="q">النتائج (${rows.length} تلميذ)</div><select id="sel" style="font:inherit;font-size:1.1rem;width:100%;padding:10px;margin-bottom:10px;border-radius:12px;background:#222;color:#fff;border:2px solid var(--bd)">${op}</select><div style="overflow-x:auto"><table><tr><th>التلميذ</th><th>أسئلة</th><th>ترتيب</th><th>صح/خطأ</th><th>كلمات</th><th>النقطة</th><th>PDF</th></tr>${tr}</table></div><br><button id="pall">⬇ PDF ${cur?'للقسم: '+esc(cur):'لكل التلاميذ'} (ملف واحد)</button><button id="csv">⬇ تحميل CSV</button><button id="b">رجوع</button></div>`;
+document.getElementById('sel').onchange=function(){cur=this.value;view()};
+document.getElementById('b').onclick=login;
+const run=async(el,l,n)=>{const t=el.textContent;el.textContent='…';try{await pdf(l,n)}catch(e){alert('تعذّر إنشاء الملف')}el.textContent=t};
+document.getElementById('pall').onclick=function(){run(this,rows,cur?'reponses_classe_'+(cls.indexOf(cur)+1)+'.pdf':'reponses_tous.pdf')};
+app.querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>run(b,[rows[b.dataset.i]],'reponses.pdf'));
+document.getElementById('csv').onclick=async()=>{const d=await claude.use('downloads');if(!d)return;
+const t='\ufeffاللقب,الاسم,القسم,أسئلة,ترتيب,صح/خطأ,كلمات,النقطة/20,التاريخ\n'+rows.map(r=>[r.last,r.first,r.cls,r.quiz,r.order,r.tf,r.cross,sc(r),r.t].map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+try{await d.save({filename:'results.csv',data:t})}catch(e){}}}
+view()}
+
+login();
+</script>
+</body>
+</html>
